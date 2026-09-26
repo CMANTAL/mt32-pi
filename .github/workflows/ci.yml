@@ -33,7 +33,7 @@ jobs:
         with:
           scandir: scripts
 
-build:
+  build:
     runs-on: ubuntu-latest
     name: build-${{ matrix.board }}
     strategy:
@@ -43,7 +43,6 @@ build:
     steps:
     - uses: actions/checkout@v4
 
-    # --- เพิ่ม 4 บรรทัดนี้ลงไปครับ ---
     - name: Install system dependencies
       run: |
         sudo apt-get update
