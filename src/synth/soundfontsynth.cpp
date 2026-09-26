@@ -326,15 +326,73 @@ void CSoundFontSynth::ReportStatus() const
 	if (m_pUI)
 		m_pUI->ShowSystemMessage(m_SoundFontManager.GetSoundFontName(m_nCurrentSoundFontIndex));
 }
-
+//
+//void CSoundFontSynth::UpdateLCD(CLCD& LCD, unsigned int nTicks)
+// {
+// 	const u8 nBarHeight = LCD.Height();
+// 	float ChannelLevels[16], PeakLevels[16];
+// 	m_MIDIMonitor.GetChannelLevels(nTicks, ChannelLevels, PeakLevels, m_nPercussionMask);
+// 	CUserInterface::DrawChannelLevels(LCD, nBarHeight, ChannelLevels, PeakLevels, 16, true);
+// }
 void CSoundFontSynth::UpdateLCD(CLCD& LCD, unsigned int nTicks)
 {
-	const u8 nBarHeight = LCD.Height();
-	float ChannelLevels[16], PeakLevels[16];
-	m_MIDIMonitor.GetChannelLevels(nTicks, ChannelLevels, PeakLevels, m_nPercussionMask);
-	CUserInterface::DrawChannelLevels(LCD, nBarHeight, ChannelLevels, PeakLevels, 16, true);
-}
+    char buffer[32];
+    u8 nWidth = LCD.Width();
+    u8 nHeight = LCD.Height();
+    u8 activeChannel = 0; // Target MIDI channel (0 = Channel 1)
 
+    // ---------------------------------------------------
+    // 1. Center Display: Bank, Program & Preset Name
+    // ---------------------------------------------------
+    fluid_preset_t* pPreset = fluid_synth_get_channel_preset(m_pSynth, activeChannel);
+    if (pPreset)
+    {
+        int bank = fluid_preset_get_banknum(pPreset);
+        int num = fluid_preset_get_num(pPreset);
+        const char* pPresetName = fluid_preset_get_name(pPreset);
+        snprintf(buffer, sizeof(buffer), "B%03d:P%03d %s", bank, num, pPresetName);
+    }
+    else
+    {
+        snprintf(buffer, sizeof(buffer), "SF2: %s", m_SoundFontManager.GetSoundFontName(m_nCurrentSoundFontIndex));
+    }
+
+    size_t len = strlen(buffer);
+    u8 xCenter = (len < nWidth) ? static_cast<u8>((nWidth - len) / 2) : 0;
+    LCD.Print(buffer, xCenter, 0, true, false);
+
+    // ---------------------------------------------------
+    // 2. Bottom-Left: Volume Percentage & Channel Number
+    // ---------------------------------------------------
+    snprintf(buffer, sizeof(buffer), "Vol:%d%%  Ch%02d", m_nVolume, activeChannel + 1);
+    LCD.Print(buffer, 0, 1, false, false); 
+
+    // ---------------------------------------------------
+    // 3. Right Side: Vertical VU Meter (Rising Upwards)
+    // ---------------------------------------------------
+    float ChannelLevels[16], PeakLevels[16];
+    m_MIDIMonitor.GetChannelLevels(nTicks, ChannelLevels, PeakLevels, m_nPercussionMask);
+    float currentLevel = ChannelLevels[activeChannel];
+
+    u8 barWidth = 8;
+    u8 barMaxHeight = nHeight - 4;
+    u8 x1 = nWidth - barWidth - 2;
+    u8 x2 = x1 + barWidth - 1;
+
+    u8 yBase = nHeight - 1;
+    u8 yTopFrame = yBase - barMaxHeight;
+    u8 fillHeight = static_cast<u8>(currentLevel * barMaxHeight);
+    u8 yFill = yBase - fillHeight;
+
+    // Draw outer bounding frame
+    LCD.DrawRect(x1, yTopFrame, x2, yBase);
+
+    // Fill inner level bar based on current audio level
+    if (fillHeight > 0)
+    {
+        LCD.DrawFilledRect(x1 + 1, yFill, x2 - 1, yBase - 1);
+    }
+}
 bool CSoundFontSynth::SwitchSoundFont(size_t nIndex)
 {
 	// Is this SoundFont already active?
