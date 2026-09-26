@@ -358,7 +358,7 @@ void CSoundFontSynth::UpdateLCD(CLCD& LCD, unsigned int nTicks)
     }
 
     size_t len = strlen(buffer);
-    u8 xCenter = (len < nWidth) ? static_cast<u8>((nWidth - len) / 2) : 0;
+    u8 xCenter = (len < nWidth) ? static_cast<u8>((nWidth - len) / 2) : static_cast<u8>(0);
     LCD.Print(buffer, xCenter, 0, true, false);
 
     // ---------------------------------------------------
@@ -375,22 +375,25 @@ void CSoundFontSynth::UpdateLCD(CLCD& LCD, unsigned int nTicks)
     float currentLevel = ChannelLevels[activeChannel];
 
     u8 barWidth = 8;
-    u8 barMaxHeight = nHeight - 4;
-    u8 x1 = nWidth - barWidth - 2;
-    u8 x2 = x1 + barWidth - 1;
+    u8 barMaxHeight = static_cast<u8>(nHeight > 4 ? nHeight - 4 : 8);
+    u8 x1 = static_cast<u8>(nWidth - barWidth - 2);
+    u8 x2 = static_cast<u8>(x1 + barWidth - 1);
 
-    u8 yBase = nHeight - 1;
-    u8 yTopFrame = yBase - barMaxHeight;
+    u8 yBase = static_cast<u8>(nHeight - 1);
+    u8 yTopFrame = static_cast<u8>(yBase - barMaxHeight);
     u8 fillHeight = static_cast<u8>(currentLevel * barMaxHeight);
-    u8 yFill = yBase - fillHeight;
+    u8 yFill = static_cast<u8>(yBase - fillHeight);
 
-    // Draw outer bounding frame
-    LCD.DrawRect(x1, yTopFrame, x2, yBase);
+    // Draw outer bounding frame (4 lines using DrawFilledRect)
+    LCD.DrawFilledRect(x1, yTopFrame, x2, yTopFrame); // Top border[cite: 3]
+    LCD.DrawFilledRect(x1, yBase, x2, yBase);         // Bottom border[cite: 3]
+    LCD.DrawFilledRect(x1, yTopFrame, x1, yBase);     // Left border[cite: 3]
+    LCD.DrawFilledRect(x2, yTopFrame, x2, yBase);     // Right border[cite: 3]
 
     // Fill inner level bar based on current audio level
     if (fillHeight > 0)
     {
-        LCD.DrawFilledRect(x1 + 1, yFill, x2 - 1, yBase - 1);
+        LCD.DrawFilledRect(static_cast<u8>(x1 + 1), yFill, static_cast<u8>(x2 - 1), static_cast<u8>(yBase - 1));[cite: 3]
     }
 }
 bool CSoundFontSynth::SwitchSoundFont(size_t nIndex)
