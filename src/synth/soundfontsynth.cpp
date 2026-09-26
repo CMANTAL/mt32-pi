@@ -326,7 +326,7 @@ void CSoundFontSynth::ReportStatus() const
 	if (m_pUI)
 		m_pUI->ShowSystemMessage(m_SoundFontManager.GetSoundFontName(m_nCurrentSoundFontIndex));
 }
-//
+//original code
 //void CSoundFontSynth::UpdateLCD(CLCD& LCD, unsigned int nTicks)
 // {
 // 	const u8 nBarHeight = LCD.Height();
