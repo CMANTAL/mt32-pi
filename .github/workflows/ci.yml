@@ -201,8 +201,7 @@ jobs:
     - name: Download GeneralUser GS SoundFont if not retrieved from cache
       if: steps.cache-generaluser-gs.outputs.cache-hit != 'true'
       run: |
-        sudo pip install gdown
-        gdown -q https://drive.google.com/uc?id=1ypgJwuHqqXx-jeCXLRFqgBAEemJZnDrj
+       wget -q -O "GeneralUser GS v1.511.zip" "https://drive.google.com/uc?export=download&id=1ypgJwuHqqXx-jeCXLRFqgBAEemJZnDrj"
         unzip "GeneralUser GS v1.511.zip"
 
     - name: Retrieve built kernels
