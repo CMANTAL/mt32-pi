@@ -211,15 +211,16 @@ jobs:
         path: sdcard
         merge-multiple: true
 
-    - name: Add extra files to SD card directory
+    - name: Add extra files to sdcard directory
       run: |
-        mkdir sdcard/docs
-        cp "GeneralUser GS v1.511/GeneralUser GS v1.511.sf2" sdcard/soundfonts
-        cp "GeneralUser GS v1.511/CHANGELOG.md" sdcard/docs/CHANGELOG.GeneralUserGS
-        cp "GeneralUser GS v1.511/LICENSE.txt" sdcard/docs/LICENSE.GeneralUserGS
-        cp LICENSE sdcard/docs
-        cp README.md sdcard/docs
-
+        mkdir -p sdcard/soundfonts
+        mkdir -p sdcard/docs
+        # ค้นหาไฟล์ .sf2 และเอกสารข้างในโดยอัตโนมัติ ไม่จำกัดชื่อโฟลเดอร์
+        find . -name "*.sf2" -exec cp {} sdcard/soundfonts/ \;
+        find . -name "CHANGELOG*" -exec cp {} sdcard/docs/CHANGELOG.GeneralUserGS \;
+        find . -name "LICENSE*" -exec cp {} sdcard/docs/LICENSE.GeneralUserGS \;
+        cp LICENSE sdcard/docs || true
+        cp README.md sdcard/docs || true
     - name: Upload SD card archive
       uses: actions/upload-artifact@v4
       with:
