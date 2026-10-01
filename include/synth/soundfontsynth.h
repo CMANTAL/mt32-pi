@@ -59,6 +59,8 @@ private:
 #ifndef NDEBUG
 	void DumpFXSettings() const;
 #endif
+        u8 m_nActiveChannel;
+
 	bool ParseGMSysEx(const u8* pData, size_t nSize);
 	bool ParseRolandSysEx(const u8* pData, size_t nSize);
 	bool ParseYamahaSysEx(const u8* pData, size_t nSize);
