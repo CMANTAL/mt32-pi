@@ -201,7 +201,7 @@ jobs:
     - name: Download GeneralUser GS SoundFont if not retrieved from cache
       if: steps.cache-generaluser-gs.outputs.cache-hit != 'true'
       run: |
-       wget -q -O "GeneralUser GS v1.511.zip" "https://drive.google.com/uc?export=download&id=1ypgJwuHqqXx-jeCXLRFqgBAEemJZnDrj"
+        wget -q -O "GeneralUser GS v1.511.zip" "https://drive.google.com/drive/u/0/folders/1o5v5aw7hwqFsGnqP5zhzdnySel-xghb5"
         unzip "GeneralUser GS v1.511.zip"
 
     - name: Retrieve built kernels
