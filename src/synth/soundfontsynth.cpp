@@ -334,7 +334,7 @@ void CSoundFontSynth::UpdateLCD(CLCD& LCD, unsigned int nTicks)
 
 	char buffer[21]; // 20 ตัวอักษร + Null terminator
 
-	// 1. ดึงค่า Active Channel ปัจจุบันที่กำลังใช้งานอยู่จริง
+	// 1. ดึงค่า Active Channel ปัจจุบัน
 	u8 activeChannel = m_nActiveChannel;
 
 	// 2. ดึงค่า Volume ปัจจุบันของระบบ (0-100%)
@@ -360,20 +360,20 @@ void CSoundFontSynth::UpdateLCD(CLCD& LCD, unsigned int nTicks)
 	m_Lock.Release();
 
 	// ---------------------------------------------------
-	// บรรทัดที่ 1 & 2: แสดงผลตามรูปแบบที่คุณต้องการ
+	// บรรทัดที่ 1-4: แสดงผลบนจอ LCD2004
 	// ---------------------------------------------------
-	// บรรทัดที่ 0: แสดง Bank/Program และชื่อเสียง (ตัวอย่าง: 000:Grand Piano)
-	snprintf(buffer, sizeof(buffer), "%03d:%-16.16s", prog, presetName);
+	// บรรทัดที่ 0: แสดง Bank, Program และชื่อเสียง (เช่น B000:000 Grand Piano)
+	snprintf(buffer, sizeof(buffer), "B%03d:%03d %-12.12s", bank, prog, presetName);
 	LCD.Print(buffer, 0, 0, false, false);
 
-	// บรรทัดที่ 1: คั่นด้วยขีดแบบในตัวอย่าง
+	// บรรทัดที่ 1: ขีดเส้นคั่น
 	LCD.Print("--------------------", 0, 1, false, false);
 
 	// บรรทัดที่ 2: แสดง Volume และ MIDI Channel ตามที่ปรับจาก Controller จริง
 	snprintf(buffer, sizeof(buffer), "Volume:%3d%%     Midi_CH:%02d", currentVolume, activeChannel + 1);
 	LCD.Print(buffer, 0, 2, false, false);
 
-	// บรรทัดที่ 3: เวว่างหรือใช้แสดงชื่อ SoundFont ไฟล์ปัจจุบัน
+	// บรรทัดที่ 3: แสดงชื่อไฟล์ SoundFont ปัจจุบัน
 	snprintf(buffer, sizeof(buffer), "SF: %-16.16s", m_SoundFontManager.GetSoundFontName(m_nCurrentSoundFontIndex));
 	LCD.Print(buffer, 0, 3, false, false);
 }
