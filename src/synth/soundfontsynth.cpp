@@ -326,63 +326,55 @@ void CSoundFontSynth::ReportStatus() const
 	if (m_pUI)
 		m_pUI->ShowSystemMessage(m_SoundFontManager.GetSoundFontName(m_nCurrentSoundFontIndex));
 }
+//Use for support LED2004
 void CSoundFontSynth::UpdateLCD(CLCD& LCD, unsigned int nTicks)
 {
 	if (!m_pSynth)
 		return;
 
 	char buffer[21]; // 20 ตัวอักษร + Null terminator
+
+	// 1. ดึงค่า Active Channel ปัจจุบันที่กำลังใช้งานอยู่จริง
 	u8 activeChannel = m_nActiveChannel;
 
-	// ---------------------------------------------------
-	// บรรทัดที่ 1 (Row 0): แสดง Bank, Program & Preset Name
-	// ---------------------------------------------------
+	// 2. ดึงค่า Volume ปัจจุบันของระบบ (0-100%)
+	int currentVolume = static_cast<int>(m_nVolume);
+
+	// 3. ดึงข้อมูล Preset (Bank, Program Number, Name) ตาม Channel นั้นๆ
 	m_Lock.Acquire();
 	fluid_preset_t* pPreset = fluid_synth_get_channel_preset(m_pSynth, activeChannel);
+	int bank = 0;
+	int prog = 0;
+	char presetName[17] = "";
+
 	if (pPreset)
 	{
-		int bank = fluid_preset_get_banknum(pPreset);
-		int num = fluid_preset_get_num(pPreset);
-		const char* pPresetName = fluid_preset_get_name(pPreset);
-		snprintf(buffer, sizeof(buffer), "B%03d:P%03d %-10.10s", bank, num, pPresetName);
-	}
-	else
-	{
-		snprintf(buffer, sizeof(buffer), "SF2: %-15.15s", m_SoundFontManager.GetSoundFontName(m_nCurrentSoundFontIndex));
+		bank = fluid_preset_get_banknum(pPreset);
+		prog = fluid_preset_get_num(pPreset);
+		const char* pName = fluid_preset_get_name(pPreset);
+		if (pName)
+		{
+			snprintf(presetName, sizeof(presetName), "%s", pName);
+		}
 	}
 	m_Lock.Release();
+
+	// ---------------------------------------------------
+	// บรรทัดที่ 1 & 2: แสดงผลตามรูปแบบที่คุณต้องการ
+	// ---------------------------------------------------
+	// บรรทัดที่ 0: แสดง Bank/Program และชื่อเสียง (ตัวอย่าง: 000:Grand Piano)
+	snprintf(buffer, sizeof(buffer), "%03d:%-16.16s", prog, presetName);
 	LCD.Print(buffer, 0, 0, false, false);
 
-	// ---------------------------------------------------
-	// บรรทัดที่ 2 (Row 1): แสดง Volume % และ Active Channel
-	// ---------------------------------------------------
-	snprintf(buffer, sizeof(buffer), "Vol:%3d%%       Ch:%02d", m_nVolume, activeChannel + 1);
-	LCD.Print(buffer, 0, 1, false, false);
+	// บรรทัดที่ 1: คั่นด้วยขีดแบบในตัวอย่าง
+	LCD.Print("--------------------", 0, 1, false, false);
 
-	// ---------------------------------------------------
-	// บรรทัดที่ 3 (Row 2): แสดงชื่อไฟล์ SoundFont (.sf2)
-	// ---------------------------------------------------
-	snprintf(buffer, sizeof(buffer), "SF: %-16.16s", m_SoundFontManager.GetSoundFontName(m_nCurrentSoundFontIndex));
+	// บรรทัดที่ 2: แสดง Volume และ MIDI Channel ตามที่ปรับจาก Controller จริง
+	snprintf(buffer, sizeof(buffer), "Volume:%3d%%     Midi_CH:%02d", currentVolume, activeChannel + 1);
 	LCD.Print(buffer, 0, 2, false, false);
 
-	// ---------------------------------------------------
-	// บรรทัดที่ 4 (Row 3): แสดง VU Meter แถบระดับเสียงแนวนอน
-	// ---------------------------------------------------
-	float ChannelLevels[16], PeakLevels[16];
-	m_MIDIMonitor.GetChannelLevels(nTicks, ChannelLevels, PeakLevels, m_nPercussionMask);
-	float currentLevel = ChannelLevels[activeChannel];
-
-	int barLength = static_cast<int>(currentLevel * 13.0f); // ความยาวแถบสูงสุด 13 ช่อง
-	if (barLength > 13) barLength = 13;
-
-	char barStr[14];
-	for (int i = 0; i < 13; i++)
-	{
-		barStr[i] = (i < barLength) ? '=' : ' ';
-	}
-	barStr[13] = '\0';
-
-	snprintf(buffer, sizeof(buffer), "Lvl:[%-13s]", barStr);
+	// บรรทัดที่ 3: เวว่างหรือใช้แสดงชื่อ SoundFont ไฟล์ปัจจุบัน
+	snprintf(buffer, sizeof(buffer), "SF: %-16.16s", m_SoundFontManager.GetSoundFontName(m_nCurrentSoundFontIndex));
 	LCD.Print(buffer, 0, 3, false, false);
 }
 bool CSoundFontSynth::SwitchSoundFont(size_t nIndex)
